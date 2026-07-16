@@ -31,3 +31,7 @@ jobs:
       - run: npm run release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Provenance on a first-time (never-published) package requires an
+          # explicit public access; n8n-node release does not pass --access,
+          # so set it via env (npm applies NPM_CONFIG_* to the inner publish).
+          NPM_CONFIG_ACCESS: public
