@@ -12,7 +12,7 @@ on:
       - '*.*.*'
 
 permissions:
-  contents: read
+  contents: write # required to create the GitHub Release
   id-token: write # required for npm provenance and Trusted Publishing (OIDC)
 
 jobs:
@@ -32,3 +32,15 @@ jobs:
         env:
           # Harmless on an existing public package; keeps provenance happy.
           NPM_CONFIG_ACCESS: public
+      # Create a GitHub Release from the pushed tag, with auto-generated notes.
+      # Idempotent: skips if a release already exists (e.g. on a re-run).
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — skipping"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "v$TAG" --generate-notes
+          fi
